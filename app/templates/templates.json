@@ -1,0 +1,17 @@
+{
+    "classic_one": {
+        "layout": "one",
+        "frame": "classic.png"
+    },
+
+  
+    "classic_three": {
+        "layout": "three",
+        "frame": "classic.png"
+    },
+
+    "classic_four": {
+        "layout": "four",
+        "frame": "classic.png"
+    }
+}
