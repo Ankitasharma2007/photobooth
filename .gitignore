@@ -6,3 +6,4 @@ test_photo_paths.py
 test_photos_db.py
 test_email_queue.py
 storage
+__pycache__/
