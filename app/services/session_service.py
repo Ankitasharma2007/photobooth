@@ -1,85 +1,186 @@
 import os
-import json
+
 import uuid
 from datetime import datetime
 from pathlib import Path
  
-
+from app.database.db import get_connection
 from app.models.session_model import SessionModel
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-UPLOAD_ROOT = os.path.join(BASE_DIR, "storage", "uploads")
-
-
+BASE_DIR = Path(__file__).resolve().parents[2]
+UPLOAD_ROOT = BASE_DIR / "storage" / "uploads"
 def create_session():
     session_id = str(uuid.uuid4())
 
-    session_folder = os.path.join(UPLOAD_ROOT, session_id)
-
-    os.makedirs(os.path.join(session_folder, "photos"), exist_ok=True)
-    os.makedirs(os.path.join(session_folder, "thumbnails"), exist_ok=True)
-    os.makedirs(os.path.join(session_folder, "output"), exist_ok=True)
-
-    session = SessionModel(
-        sessionId=session_id,
-        createdAt=datetime.now(),
+    session_folder = UPLOAD_ROOT / session_id
+    (session_folder / "photos").mkdir(
+        parents=True,
+        exist_ok=True
     )
 
-    session_file = os.path.join(session_folder, "session.json")
+    (session_folder / "thumbnails").mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
-    with open(session_file, "w") as f:
-        json.dump(session.model_dump(mode="json"), f, indent=4)
+    (session_folder / "output").mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
-    return session
+    created_at = datetime.now().isoformat()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        """
+        INSERT INTO sessions (
+            id,
+            status,
+            template_id,
+            created_at
+        )
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            session_id,
+            "active",
+            None,
+            created_at
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+    # Return object compatible with your existing API
+    return SessionModel(
+        sessionId=session_id,
+        createdAt=datetime.fromisoformat(created_at)
+    )
 
 def load_session(session_id: str):
-    session_file = os.path.join(
-        UPLOAD_ROOT,
-        session_id,
-        "session.json"
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        """
+        SELECT
+            id,
+            status,
+            template_id,
+            created_at
+        FROM sessions
+        WHERE id = ?
+        """,
+        (session_id,)
     )
-
-    if not os.path.exists(session_file):
+    session_row = cursor.fetchone()
+    if session_row is None:
+        connection.close()
         return None
 
-    with open(session_file, "r") as f:
-        return json.load(f)
+    cursor.execute(
+        """
+        SELECT
+            id,
+            filename,
+            uploaded_at
+        FROM photos
+        WHERE session_id = ?
+        ORDER BY uploaded_at
+        """,
+        (session_id,)
+    )
+    photo_rows = cursor.fetchall()
+    connection.close()
+    photos = []
+    for photo in photo_rows:
+        photos.append({
+            "id": photo["id"],
+            "filename": photo["filename"],
+            "uploadedAt": photo["uploaded_at"] 
+        })
 
+    return {
+        "sessionId": session_row["id"],
+        "status": session_row["status"],
+        "templateId": session_row["template_id"],
+        "createdAt": session_row["created_at"],
+        "photos": photos
+    }
 
 def save_session(session_id: str, session_data: dict):
-    session_file = os.path.join(
-        UPLOAD_ROOT,
-        session_id,
-        "session.json"
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+         """
+        UPDATE sessions
+        SET
+            status = ?,
+            template_id = ?
+        WHERE id = ?
+        """,
+        (
+            session_data.get("status", "active"),
+            session_data.get("templateId"),
+            session_id
+        )
     )
 
-    with open(session_file, "w") as f:
-        json.dump(session_data, f, indent=4)
+    connection.commit()
+    connection.close()
 
-def get_photo_paths(session_id):
+def get_photo_paths(session_id: str):
+
     session = load_session(session_id)
 
-    photo_dir = Path("storage/uploads") / session_id / "photos"
+    if session is None:
+        raise Exception("Session not found")
+
+    photo_dir = UPLOAD_ROOT / session_id / "photos"
 
     paths = []
 
     for photo in session["photos"]:
-        paths.append(str(photo_dir / photo["filename"]))
+
+        photo_path = photo_dir / photo["filename"]
+
+        if not photo_path.exists():
+            raise Exception(
+                f"Photo not found: {photo_path}"
+            )
+
+        paths.append(str(photo_path))
 
     return paths
 
-def update_layout(session_id: str, layout: str):
-    session = load_session(session_id)
-    session["layout"] = layout
-    save_session(session_id, session)
+def update_layout(session_id: str, template_id: str):
 
-def update_frame(session_id: str, frame: str):
-    session = load_session(session_id)
-    session["frame"] = frame
-    save_session(session_id, session)
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        UPDATE sessions
+        SET template_id = ?
+        WHERE id = ?
+        """,
+        (
+            template_id,
+            session_id
+        )
+    )
+
+    connection.commit()
+    connection.close()
 
 def get_photos(session_id: str):
+
     session = load_session(session_id)
+
     if session is None:
-        return None
-    return session.get("photos", [])
+        raise Exception("Session not found")
+
+    return session["photos"]

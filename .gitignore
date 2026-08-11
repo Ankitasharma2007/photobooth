@@ -1,1 +1,8 @@
 app/storage
+.env
+test_collage.py
+test_database.py
+test_photo_paths.py
+test_photos_db.py
+test_email_queue.py
+storage

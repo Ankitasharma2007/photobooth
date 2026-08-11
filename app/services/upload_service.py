@@ -1,54 +1,114 @@
-import os
 import uuid
-import shutil
 from datetime import datetime
+from pathlib import Path
+import shutil
 
 from PIL import Image
 
-from app.services.session_service import load_session, save_session
+from app.database.db import get_connection
+from app.services.session_service import load_session
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-UPLOAD_ROOT = os.path.join(BASE_DIR, "storage", "uploads")
+
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+UPLOAD_ROOT = BASE_DIR / "storage" / "uploads"
 
 
 def save_photo(session_id: str, upload_file):
 
-    image_id = str(uuid.uuid4())
-
-    extension = os.path.splitext(upload_file.filename)[1]
-    filename = f"{image_id}{extension}"
-
-    session_folder = os.path.join(UPLOAD_ROOT, session_id)
-
-    photos_folder = os.path.join(session_folder, "photos")
-    thumbs_folder = os.path.join(session_folder, "thumbnails")
-
-    # Save original image
-    photo_path = os.path.join(photos_folder, filename)
-
-    with open(photo_path, "wb") as buffer:
-        shutil.copyfileobj(upload_file.file, buffer)
-
-    # Create thumbnail
-    thumbnail_path = os.path.join(thumbs_folder, filename)
-
-    image = Image.open(photo_path)
-    image.thumbnail((300, 300))
-    image.save(thumbnail_path)
-
-    # Update session.json
+    # Check that session exists
     session = load_session(session_id)
 
-    session["photos"].append({
-        "id": image_id,
-        "filename": filename,
-        "uploadedAt": datetime.now().isoformat()
-    })
+    if session is None:
+        raise Exception("Session not found")
 
-    save_session(session_id, session)
+    # Generate unique image ID
+    image_id = str(uuid.uuid4())
 
-    # Return response
+    # Get original extension
+    original_filename = upload_file.filename or ""
+
+    extension = Path(original_filename).suffix.lower()
+
+    if not extension:
+        extension = ".jpg"
+
+    # Create filename
+    filename = f"{image_id}{extension}"
+
+    # Session folders
+    session_folder = UPLOAD_ROOT / session_id
+
+    photos_folder = session_folder / "photos"
+    thumbs_folder = session_folder / "thumbnails"
+
+    # Make sure folders exist
+    photos_folder.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+    thumbs_folder.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+
+   
+    photo_path = photos_folder / filename
+
+    with open(photo_path, "wb") as buffer:
+        shutil.copyfileobj(
+            upload_file.file,
+            buffer
+        )
+
+    thumbnail_path = thumbs_folder / filename
+
+    image = Image.open(photo_path)
+
+    image.thumbnail(
+        (300, 300),
+        Image.Resampling.LANCZOS
+    )
+
+    # JPEG does not support RGBA
+    if image.mode in ("RGBA", "LA", "P"):
+        image = image.convert("RGB")
+
+    image.save(thumbnail_path)
+
+   
+    uploaded_at = datetime.now().isoformat()
+
+    connection = get_connection()
+
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO photos (
+            id,
+            session_id,
+            filename,
+            uploaded_at
+        )
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            image_id,
+            session_id,
+            filename,
+            uploaded_at
+        )
+    )
+
+    connection.commit()
+    connection.close()
+
+    
     return {
         "imageId": image_id,
-        "filename": filename
+        "filename": filename,
+        "uploadedAt": uploaded_at
     }
