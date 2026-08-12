@@ -8,3 +8,4 @@ test_email_queue.py
 storage
 __pycache__/
 *.pyc
+test.jpg

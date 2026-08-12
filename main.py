@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 from app.api import session, upload, photos, generate, email
 from app.api import download
+from app.services.email_worker import start_email_worker
 
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Photobooth API")
+
+@app.on_event("startup")
+def startup_event():
+    start_email_worker()
 
 app.add_middleware(
     CORSMiddleware,
