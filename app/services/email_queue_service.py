@@ -25,7 +25,7 @@ def queue_email(
             email,
             image_path,
             "PENDING",
-            "resend",
+            "gmail_smtp",
             datetime.now().isoformat()
         )
     )
