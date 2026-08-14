@@ -1,0 +1,26 @@
+{
+    "acm_magenta_four": {
+        "name": "ACM Magenta 4-Strip",
+        "layout": "four",
+        "bg": "#B3278C",
+        "frame": "classic.png"
+    },
+    "acm_amber_three": {
+        "name": "ACM Amber 3-Strip",
+        "layout": "three",
+        "bg": "#C46D00",
+        "frame": "classic.png"
+    },
+    "acm_skyblue_one": {
+        "name": "ACM Sky Blue Single",
+        "layout": "one",
+        "bg": "#4AA3E0",
+        "frame": "classic.png"
+    },
+    "acm_pale_oak_two": {
+        "name": "ACM  Oak 2-Strip",
+        "layout": "two",
+        "bg": "#F4F1EC",
+        "frame": "classic.png"
+    }
+}
