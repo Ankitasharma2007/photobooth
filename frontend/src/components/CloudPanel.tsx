@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { api, type GenerateResult, type QueuedEmail, type ServerTemplate } from '@/services/api';
+import { FRAMES } from '@/utils/design';
 import { prepareSession, useBooth } from '@/services/store';
 import { GlowButton, Panel, Spinner, cx } from './ui';
 
@@ -23,7 +24,7 @@ type Busy = 'generate' | 'email' | null;
  * this panel is what leaves the machine.
  */
 export default function CloudPanel() {
-  const { photos, sessionId, uploads, cloudError } = useBooth();
+  const { photos, sessionId, uploads, cloudError, design, patchDesign } = useBooth();
 
   const [online, setOnline] = useState<boolean | null>(null);
   const [templates, setTemplates] = useState<ServerTemplate[]>([]);
@@ -54,13 +55,37 @@ export default function CloudPanel() {
     void probe();
   }, [probe]);
 
-  // Photo count decides the template, so keep the choice valid as frames change.
+  // Keep server template synced with selected frame/layout in design
   useEffect(() => {
-    const options = templates.filter((t) => t.slots === photos.length);
-    setTemplateId((current) =>
-      options.some((t) => t.id === current) ? current : (options[0]?.id ?? ''),
+    if (!templates.length) return;
+    const frameId = design.frameId;
+    const matching = templates.find(
+      (t) =>
+        t.id === frameId ||
+        t.layout === frameId ||
+        t.id === `acm_${frameId}` ||
+        (frameId && t.id.includes(frameId)),
     );
-  }, [templates, photos.length]);
+    if (matching) {
+      setTemplateId(matching.id);
+    } else {
+      const options = templates.filter((t) => t.slots === photos.length);
+      setTemplateId((current) =>
+        options.some((t) => t.id === current) ? current : (options[0]?.id ?? ''),
+      );
+    }
+  }, [templates, design.frameId, design.layout, photos.length]);
+
+  const selectTemplate = (tid: string) => {
+    setTemplateId(tid);
+    setResult(null);
+    const matchingFrame = FRAMES.find(
+      (f) => f.id === tid || f.design.frameId === tid || tid.includes(f.id),
+    );
+    if (matchingFrame) {
+      patchDesign(matchingFrame.design);
+    }
+  };
 
   /** Sync + render on the server. Always re-runs: the strip may have changed. */
   const buildOnServer = async () => {
@@ -124,7 +149,7 @@ export default function CloudPanel() {
             <button
               key={t.id}
               type="button"
-              onClick={() => setTemplateId(t.id)}
+              onClick={() => selectTemplate(t.id)}
               className={cx(
                 'rounded-full border px-3 py-1 text-[11px] font-bold transition-all',
                 templateId === t.id
