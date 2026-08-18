@@ -76,7 +76,11 @@ async function reason(res: Response) {
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, init);
+    const headers = new Headers(init?.headers);
+    if (!headers.has('ngrok-skip-browser-warning')) {
+      headers.set('ngrok-skip-browser-warning', 'true');
+    }
+    res = await fetch(`${API_BASE}${path}`, { ...init, headers });
   } catch {
     throw new Error(`Cannot reach the booth server at ${API_BASE}.`);
   }

@@ -9,6 +9,10 @@ from dotenv import load_dotenv
 
 from app.database.db import get_connection
 
+ROOT_DIR = Path(__file__).resolve().parents[3]
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+load_dotenv(ROOT_DIR / ".env")
+load_dotenv(BACKEND_DIR / ".env")
 load_dotenv()
 
 TEMPLATE_PATH = (
@@ -47,13 +51,22 @@ def internet_available():
         return False
 
 
+def get_smtp_connection(smtp_host, smtp_port, smtp_username, smtp_password):
+    if smtp_port == 465:
+        server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=20)
+    else:
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=20)
+        server.starttls()
+    server.login(smtp_username, smtp_password)
+    return server
+
+
 def send_pending_emails():
     """
     Send all PENDING emails from the local SQLite queue via Gmail SMTP.
 
     If internet/SMTP is unavailable:
         - Do not send anything
-        - Do not mark emails as FAILED
         - Leave them as PENDING
     """
     print("Starting email sender...")
@@ -108,15 +121,6 @@ def send_pending_emails():
         connection.close()
         return
 
-    try:
-        server = smtplib.SMTP(smtp_host, smtp_port, timeout=10)
-        server.starttls()
-        server.login(smtp_username, smtp_password)
-    except Exception as e:
-        connection.close()
-        print(f"Could not connect/login to SMTP server: {e}")
-        return
-
     for row in rows:
         queue_id = row["id"]
         recipient = row["email"]
@@ -141,7 +145,10 @@ def send_pending_emails():
             print("FAILED: image not found.")
             continue
 
+        server = None
         try:
+            server = get_smtp_connection(smtp_host, smtp_port, smtp_username, smtp_password)
+
             with open(image_path, "rb") as file:
                 image_data = file.read()
 
@@ -197,11 +204,12 @@ def send_pending_emails():
             )
             connection.commit()
             print(f"FAILED: {error_message}")
-
-    try:
-        server.quit()
-    except Exception:
-        pass
+        finally:
+            if server:
+                try:
+                    server.quit()
+                except Exception:
+                    pass
 
     connection.close()
     print()
