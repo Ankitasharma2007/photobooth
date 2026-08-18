@@ -7,7 +7,7 @@ export type ThemeId = 'wedding' | 'birthday' | 'corporate' | 'festival';
 export type ShapeId = 'original' | 'square' | 'circle' | 'heart' | 'rounded';
 export type PatternId = 'solid' | 'gradient' | 'dots' | 'grid' | 'confetti' | 'aurora';
 export type TextureId = 'none' | 'grain' | 'vignette';
-export type LayoutId = 'strip4' | 'strip3' | 'grid4' | 'single';
+export type LayoutId = 'strip4' | 'grid4' | 'single';
 export type AspectId = 'free' | 'square' | 'portrait' | 'landscape' | 'strip';
 
 /** Photo placement inside its cell. x/y are fractions of the cell, so they survive a layout change. */

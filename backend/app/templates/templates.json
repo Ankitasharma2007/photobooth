@@ -1,17 +1,31 @@
 {
-    "classic_one": {
+    "one_115": {
         "layout": "one",
-        "frame": "classic.png"
+        "frame": "Frame 115 (1).png"
     },
 
-  
-    "classic_three": {
+    "one_119": {
+        "layout": "one",
+        "frame": "Frame 119.png"
+    },
+
+    "three_107": {
         "layout": "three",
-        "frame": "classic.png"
+        "frame": "Frame 107.png"
     },
 
-    "classic_four": {
+    "three_113": {
+        "layout": "three",
+        "frame": "Frame 113.png"
+    },
+
+    "four_110": {
         "layout": "four",
-        "frame": "classic.png"
+        "frame": "Frame 110.png"
+    },
+
+    "four_112": {
+        "layout": "four",
+        "frame": "Frame 112.png"
     }
 }

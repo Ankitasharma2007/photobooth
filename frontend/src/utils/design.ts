@@ -23,7 +23,6 @@ export const LAYOUTS: Record<
   { cols: number; rows: number; aspect: number; label: string; count: number }
 > = {
   strip4: { cols: 1, rows: 4, aspect: 4 / 3, label: 'Classic Strip', count: 4 },
-  strip3: { cols: 1, rows: 2, aspect: 4 / 3, label: '2 Strip', count: 2 },
   grid4: { cols: 2, rows: 2, aspect: 1, label: 'Quad Grid', count: 4 },
   single: { cols: 1, rows: 1, aspect: 4 / 5, label: 'Poster', count: 1 },
 };

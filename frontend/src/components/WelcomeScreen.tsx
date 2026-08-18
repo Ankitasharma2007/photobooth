@@ -29,14 +29,6 @@ const LAYOUT_SLIDES: LayoutSlide[] = [
     count: 4,
   },
   {
-    id: 'strip3',
-    label: '2 Photos',
-    title: 'TWO FRAMES. ONE STORY.',
-    subtitle: 'Two clean captures in one timeless strip.',
-    badge: '2 PHOTOS',
-    count: 2,
-  },
-  {
     id: 'single',
     label: '1 Photo',
     title: 'ONE PERFECT MOMENT.',

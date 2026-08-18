@@ -16,7 +16,6 @@ import { Slider, cx } from './ui';
 
 const LAYOUT_NAMES: Record<LayoutId, string> = {
   strip4: '4 Photos',
-  strip3: '2 Photos',
   grid4: 'Frame',
   single: '1 Photo',
 };
@@ -351,7 +350,7 @@ export default function PhotoCapture({
                 style={{ backgroundColor: '#FFFFFF' }}
                 className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 min-w-[140px] rounded-[10px] border border-[#D6D0C5] p-1.5 shadow-glass"
               >
-                {(['strip4', 'strip3', 'single', 'grid4'] as LayoutId[]).map((lId) => (
+                {(['strip4', 'single', 'grid4'] as LayoutId[]).map((lId) => (
                   <button
                     key={lId}
                     type="button"
