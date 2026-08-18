@@ -36,7 +36,7 @@ export default function PhotoCanvas({
 }) {
   const { design, photos, selectedItemId, selectItem, updateItem, removeItem, setActivePhoto, go } =
     useBooth();
-  const images = useImages(photos);
+  const images = useImages(photos, design.frameOverlay ? [design.frameOverlay] : []);
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drag = useRef<DragState | null>(null);

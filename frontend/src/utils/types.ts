@@ -84,6 +84,8 @@ export interface Design {
   subtitle: string;
   titleFont: string;
   showDate: boolean;
+  frameOverlay?: string;
+  frameId?: string;
   items: Item[];
 }
 

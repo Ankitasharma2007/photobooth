@@ -15,17 +15,15 @@ def queue_email(
             email,
             image_path,
             status,
-            provider,
             created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?)
         """,
         (
             session_id,
             email,
             image_path,
             "PENDING",
-            "resend",
             datetime.now().isoformat()
         )
     )

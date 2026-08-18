@@ -12,45 +12,55 @@ import { AcmLogo } from './AcmLogo';
 
 interface LayoutSlide {
   id: LayoutId;
+  frameId: string;
   label: string;
   title: string;
   subtitle: string;
   badge: string;
   count: number;
+  frameOverlay: string;
 }
 
 const LAYOUT_SLIDES: LayoutSlide[] = [
   {
-    id: 'strip4',
-    label: '4 Photos',
-    title: 'FOUR MOMENTS. ONE MEMORY.',
-    subtitle: 'The classic ACM photo-booth experience.',
-    badge: '4 PHOTOS',
-    count: 4,
+    id: 'single',
+    frameId: 'spiderman_single',
+    label: 'Spider-Man Single',
+    title: 'ACM SPIDER-MAN SINGLE',
+    subtitle: '1-photo comic poster with Spider-Man artwork.',
+    badge: '1 PHOTO',
+    count: 1,
+    frameOverlay: '/frames/spiderman_single.png',
   },
   {
     id: 'strip3',
-    label: '2 Photos',
-    title: 'TWO FRAMES. ONE STORY.',
-    subtitle: 'Two clean captures in one timeless strip.',
-    badge: '2 PHOTOS',
-    count: 2,
+    frameId: 'pop_three',
+    label: 'Pop Star 3-Strip',
+    title: 'ACM POP STAR 3-STRIP',
+    subtitle: '3-photo cyber starburst vertical strip.',
+    badge: '3 PHOTOS',
+    count: 3,
+    frameOverlay: '/frames/pop_three.png',
   },
   {
-    id: 'single',
-    label: '1 Photo',
-    title: 'ONE PERFECT MOMENT.',
-    subtitle: 'One portrait. Maximum impact.',
-    badge: '1 PHOTO',
-    count: 1,
+    id: 'strip4',
+    frameId: 'retro_four',
+    label: 'Retro 4-Strip',
+    title: 'ACM RETRO 4-STRIP',
+    subtitle: '4-photo vintage strip with camera & vinyl accents.',
+    badge: '4 PHOTOS',
+    count: 4,
+    frameOverlay: '/frames/retro_four.png',
   },
   {
     id: 'grid4',
-    label: 'Frame',
-    title: 'MAKE IT YOUR FRAME.',
-    subtitle: "Your photo wrapped in the event's signature frame.",
-    badge: 'FRAME',
+    frameId: 'doodle_four',
+    label: 'Cooked 4-Grid',
+    title: 'ACM COOKED 4-GRID',
+    subtitle: '4-photo 2x2 doodle grid with SLAY & Cooked artwork.',
+    badge: '4 GRID',
     count: 4,
+    frameOverlay: '/frames/doodle_four.png',
   },
 ];
 
@@ -113,7 +123,12 @@ export default function WelcomeScreen() {
         setSelectedIdx(idx);
         angleRef.current = -(idx * (Math.PI / 2));
       }
-      patchDesign({ layout: layoutId });
+      const slide = LAYOUT_SLIDES.find((s) => s.id === layoutId) || LAYOUT_SLIDES[0];
+      patchDesign({
+        layout: layoutId,
+        frameOverlay: slide.frameOverlay,
+        frameId: slide.frameId,
+      });
       useBooth.setState({ photos: [], activePhotoId: null });
 
       setFlash(true);
@@ -413,26 +428,13 @@ export default function WelcomeScreen() {
                       {slide.badge}
                     </div>
 
-                    {/* Coherent Frame Stack */}
-                    <div className={cx(
-                      'mt-7 grid gap-2 flex-1 items-center',
-                      slide.id === 'grid4' ? 'grid-cols-2 grid-rows-2' : 'grid-cols-1',
-                    )}>
-                      {Array.from({ length: slide.count }).map((_, pIdx) => (
-                        <div
-                          key={pIdx}
-                          className={cx(
-                            'relative flex flex-col items-center justify-center overflow-hidden rounded-[12px] border border-[#E1E8EC] bg-[#F7F9FA] text-[#18232B] shadow-inner',
-                            slide.id === 'grid4' ? 'aspect-square' : slide.id === 'single' ? 'h-full aspect-[4/5]' : 'aspect-[4/3]',
-                          )}
-                        >
-                          <Camera size={20} className="text-[#2F7898] opacity-85 mb-1" />
-                          <span className="text-[11px] font-bold text-[#18232B]">Frame {pIdx + 1}</span>
-                          {slide.id === 'grid4' && (
-                            <div className="pointer-events-none absolute inset-1 rounded-lg border border-dashed border-[#CCD5D9]" />
-                          )}
-                        </div>
-                      ))}
+                    {/* Frame Image Mockup */}
+                    <div className="relative mt-7 flex-1 w-full overflow-hidden rounded-[14px] bg-[#111] border border-[#E1E8EC] flex items-center justify-center p-1.5 shadow-inner">
+                      <img
+                        src={slide.frameOverlay}
+                        alt={slide.label}
+                        className="h-full w-full object-contain drop-shadow-md"
+                      />
                     </div>
 
                     {/* Paper Footer */}

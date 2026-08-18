@@ -72,7 +72,7 @@ interface BoothState {
   beautifyStickers: () => void;
   clearStickers: () => void;
   applyDecorPreset: (id: string) => void;
-  addText: () => void;
+  addText: (customText?: string) => void;
   updateItem: (id: string, patch: Partial<StickerItem> & Partial<TextItem>) => void;
   removeItem: (id: string) => void;
   raiseItem: (id: string, dir: 1 | -1) => void;
@@ -340,23 +340,23 @@ export const useBooth = create<BoothState>((set, get) => ({
       return { design, selectedItemId: null };
     }),
 
-  addText: () =>
+  addText: (customText?: string) =>
     set((s) => {
       const item: TextItem = {
         kind: 'text',
         id: uid(),
-        text: 'Your text',
+        text: customText?.trim() ? customText.trim() : 'Your text',
         x: 300,
-        y: 180,
-        size: 40,
+        y: 240,
+        size: 38,
         rotation: 0,
         opacity: 1,
-        font: s.design.titleFont,
-        weight: '600',
+        font: 'Inter',
+        weight: '700',
         color: '#FFFFFF',
         align: 'center',
         shadow: true,
-        strokeWidth: 0,
+        strokeWidth: 2,
         strokeColor: '#000000',
       };
       const design = { ...s.design, items: [...s.design.items, item] };

@@ -46,8 +46,8 @@ def test_templates():
         slot_counts.add(len(LAYOUTS[layout]["slots"]))
 
     # The frontend picks a template by photo count, so every count the booth can
-    # capture (1, 2, 4) needs one.
-    for count in (1, 2, 4):
+    # capture (1, 3, 4) needs one.
+    for count in (1, 3, 4):
         assert count in slot_counts, (
             f"no template takes {count} photo(s); the UI cannot generate that layout"
         )

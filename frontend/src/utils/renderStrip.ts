@@ -33,7 +33,71 @@ export function hasFooter(d: Design) {
   return Boolean(d.title || d.subtitle || d.showDate);
 }
 
+export const CUSTOM_FRAME_CONFIGS: Record<
+  string,
+  {
+    nativeWidth: number;
+    nativeHeight: number;
+    slots: { x: number; y: number; w: number; h: number }[];
+  }
+> = {
+  '/frames/spiderman_single.png': {
+    nativeWidth: 916,
+    nativeHeight: 1024,
+    slots: [{ x: 111, y: 113, w: 654, h: 655 }],
+  },
+  '/frames/pop_three.png': {
+    nativeWidth: 343,
+    nativeHeight: 1024,
+    slots: [
+      { x: 17, y: 56, w: 310, h: 254 },
+      { x: 17, y: 326, w: 310, h: 254 },
+      { x: 17, y: 597, w: 310, h: 254 },
+    ],
+  },
+  '/frames/retro_four.png': {
+    nativeWidth: 357,
+    nativeHeight: 1024,
+    slots: [
+      { x: 50, y: 74, w: 247, h: 190 },
+      { x: 50, y: 277, w: 247, h: 190 },
+      { x: 50, y: 480, w: 247, h: 190 },
+      { x: 50, y: 683, w: 247, h: 190 },
+    ],
+  },
+  '/frames/doodle_four.png': {
+    nativeWidth: 823,
+    nativeHeight: 1024,
+    slots: [
+      { x: 45, y: 90, w: 350, h: 372 },
+      { x: 430, y: 88, w: 350, h: 374 },
+      { x: 48, y: 500, w: 352, h: 384 },
+      { x: 435, y: 504, w: 340, h: 376 },
+    ],
+  },
+};
+
 export function computeLayout(d: Design): StripLayout {
+  if (d.frameOverlay && CUSTOM_FRAME_CONFIGS[d.frameOverlay]) {
+    const cfg = CUSTOM_FRAME_CONFIGS[d.frameOverlay];
+    const scale = DESIGN_W / cfg.nativeWidth;
+    const height = Math.round(cfg.nativeHeight * scale);
+    const cells = cfg.slots.map((s) => ({
+      x: Math.round(s.x * scale),
+      y: Math.round(s.y * scale),
+      w: Math.round(s.w * scale),
+      h: Math.round(s.h * scale),
+    }));
+    return {
+      width: DESIGN_W,
+      height,
+      pad: 0,
+      cells,
+      footerY: height,
+      footerH: 0,
+    };
+  }
+
   const conf = LAYOUTS[d.layout];
   const pad = d.border;
   const cellW = (DESIGN_W - pad * 2 - (conf.cols - 1) * CELL_GAP) / conf.cols;
@@ -428,10 +492,16 @@ export function renderStrip(ctx: Ctx, o: RenderOptions): StripLayout {
     }
   });
 
-  if (layout.footerH) drawFooter(ctx, d, layout, o.date ?? new Date());
-
-  paintTexture(ctx, d, layout.width, layout.height);
-  paintBorder(ctx, d, layout.width, layout.height);
+  if (d.frameOverlay) {
+    const frameImg = o.images.get(d.frameOverlay);
+    if (frameImg && frameImg.complete && frameImg.naturalWidth) {
+      ctx.drawImage(frameImg, 0, 0, layout.width, layout.height);
+    }
+  } else {
+    if (layout.footerH) drawFooter(ctx, d, layout, o.date ?? new Date());
+    paintTexture(ctx, d, layout.width, layout.height);
+    paintBorder(ctx, d, layout.width, layout.height);
+  }
 
   d.items.forEach((it) => drawItem(ctx, it, d.borderColor));
 

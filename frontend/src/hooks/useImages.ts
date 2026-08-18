@@ -4,23 +4,25 @@ import { useEffect, useReducer, useRef } from 'react';
 import type { Photo } from '@/utils/types';
 
 /** Decoded-image cache keyed by src, so the canvas can draw synchronously on every frame. */
-export function useImages(photos: Photo[]) {
+export function useImages(photos: Photo[], extraSrcs: string[] = []) {
   const cache = useRef(new Map<string, HTMLImageElement>());
   const [, bump] = useReducer((n: number) => n + 1, 0);
 
   useEffect(() => {
     let live = true;
-    photos.forEach((p) => {
-      if (cache.current.has(p.src)) return;
+    const allSrcs = [...photos.map((p) => p.src), ...extraSrcs.filter(Boolean)];
+    allSrcs.forEach((src) => {
+      if (cache.current.has(src)) return;
       const img = new Image();
       img.onload = () => live && bump();
-      cache.current.set(p.src, img);
-      img.src = p.src;
+      img.onerror = () => live && bump();
+      cache.current.set(src, img);
+      img.src = src;
     });
     return () => {
       live = false;
     };
-  }, [photos]);
+  }, [photos, extraSrcs.join(',')]);
 
   // Web fonts land after first paint; redraw once they do or the strip title jumps.
   useEffect(() => {

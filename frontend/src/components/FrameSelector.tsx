@@ -26,25 +26,9 @@ export default function FrameSelector() {
   return (
     <div className="space-y-4">
       <Panel title={t('frame')}>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-            <Chip
-              key={id}
-              active={category === id}
-              onClick={() => {
-                setCategory(id);
-                if (theme !== id) setTheme(id);
-              }}
-              className="!px-3 !py-1.5 !text-[12px]"
-            >
-              {THEMES[id].emoji} {THEMES[id].label}
-            </Chip>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          {FRAMES.filter((f) => f.category === category).map((f) => {
-            const active = design.bg === f.design.bg && design.borderColor === f.design.borderColor;
+        <div className="grid grid-cols-2 gap-3">
+          {FRAMES.map((f) => {
+            const active = design.frameOverlay === f.design.frameOverlay || design.frameId === f.id;
             return (
               <motion.button
                 key={f.id}
@@ -53,23 +37,40 @@ export default function FrameSelector() {
                 whileTap={{ scale: 0.97 }}
                 onClick={() => patchDesign(f.design)}
                 className={cx(
-                  'group relative overflow-hidden rounded-[10px] border p-2 transition-all duration-200 shadow-subtle',
+                  'group relative flex flex-col items-center overflow-hidden rounded-[14px] border p-2.5 transition-all duration-200 shadow-subtle text-left',
                   active
                     ? 'border-[#2F7898] bg-[#E3F0F5] ring-2 ring-[#2F7898]/30'
                     : 'border-[#D5E0E4] bg-white hover:border-[#C0CDD3] hover:bg-[#EEF3F5]',
                 )}
               >
-                <div
-                  className="mb-2 aspect-[3/4] w-full rounded-[6px] shadow-sm"
-                  style={{
-                    background: `linear-gradient(150deg, ${f.swatch[0]}, ${f.swatch[1]})`,
-                    boxShadow: `inset 0 0 0 2px ${f.swatch[1]}`,
-                  }}
-                />
-                <p className="truncate text-[11px] font-semibold text-[#17242B]">{f.name}</p>
+                <div className="relative mb-2 aspect-[3/4] w-full overflow-hidden rounded-[8px] bg-[#111] border border-black/10">
+                  <img
+                    src={f.previewImage}
+                    alt={f.name}
+                    className="h-full w-full object-contain p-1"
+                  />
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      boxShadow: `inset 0 0 0 1.5px ${f.swatch[0]}33`,
+                    }}
+                  />
+                </div>
+                <div className="w-full">
+                  <p className="truncate text-[12px] font-bold text-[#17242B]">{f.name}</p>
+                  <p className="text-[10px] font-semibold text-[#66747D]">
+                    {f.design.layout === 'single'
+                      ? '1 Photo Poster'
+                      : f.design.layout === 'strip3'
+                      ? '3 Photo Strip'
+                      : f.design.layout === 'strip4'
+                      ? '4 Photo Strip'
+                      : '4 Photo Grid'}
+                  </p>
+                </div>
                 {active && (
-                  <span className="absolute right-1.5 top-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#2F7898] text-white shadow-sm">
-                    <Check size={10} strokeWidth={3} />
+                  <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-[#2F7898] text-white shadow-sm">
+                    <Check size={12} strokeWidth={3} />
                   </span>
                 )}
               </motion.button>

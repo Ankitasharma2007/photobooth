@@ -52,7 +52,6 @@ def init_database():
             email TEXT NOT NULL,
             image_path TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'PENDING',
-            provider TEXT,
             created_at TEXT NOT NULL,
             sent_at TEXT,
             error_message TEXT,

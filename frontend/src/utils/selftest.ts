@@ -16,7 +16,7 @@ function assert(cond: unknown, msg: string) {
 export function runSelfTest() {
   // --- layout geometry -------------------------------------------------
   for (const id of Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]) {
-    const d = { ...themeDefaults('wedding'), layout: id, border: 28 };
+    const d = { ...themeDefaults('wedding'), layout: id, border: 28, frameOverlay: undefined };
     const l = computeLayout(d);
     const conf = LAYOUTS[id];
 
@@ -42,7 +42,13 @@ export function runSelfTest() {
   }
 
   // Footer collapses when there is nothing to print in it.
-  const bare = { ...themeDefaults('wedding'), title: '', subtitle: '', showDate: false };
+  const bare = {
+    ...themeDefaults('wedding'),
+    title: '',
+    subtitle: '',
+    showDate: false,
+    frameOverlay: undefined,
+  };
   assert(computeLayout(bare).footerH === 0, 'bare strip has no footer band');
 
   // --- image fitting ---------------------------------------------------
@@ -57,7 +63,7 @@ export function runSelfTest() {
 
   // --- decorative placement --------------------------------------------
   for (const id of Object.keys(LAYOUTS) as (keyof typeof LAYOUTS)[]) {
-    const d = { ...themeDefaults('wedding'), layout: id };
+    const d = { ...themeDefaults('wedding'), layout: id, frameOverlay: undefined };
     const slots = decorSlots(d);
     assert(slots.length >= 8, `${id}: enough decorative anchors`);
     assert(

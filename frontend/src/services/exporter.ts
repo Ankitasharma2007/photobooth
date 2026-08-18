@@ -21,15 +21,19 @@ export type QualityId = (typeof QUALITIES)[number]['id'];
 export const scaleFor = (q: QualityId) =>
   QUALITIES.find((x) => x.id === q)?.scale ?? EXPORT_SCALE;
 
-export function loadImages(photos: Photo[]): Promise<Map<string, HTMLImageElement>> {
+export function loadImages(
+  photos: Photo[],
+  extraSrcs: string[] = [],
+): Promise<Map<string, HTMLImageElement>> {
+  const allSrcs = [...photos.map((p) => p.src), ...extraSrcs.filter(Boolean)];
   return Promise.all(
-    photos.map(
-      (p) =>
+    allSrcs.map(
+      (src) =>
         new Promise<[string, HTMLImageElement]>((resolve) => {
           const img = new Image();
-          img.onload = () => resolve([p.src, img]);
-          img.onerror = () => resolve([p.src, img]);
-          img.src = p.src;
+          img.onload = () => resolve([src, img]);
+          img.onerror = () => resolve([src, img]);
+          img.src = src;
         }),
     ),
   ).then((pairs) => new Map(pairs));
@@ -57,7 +61,10 @@ export async function renderExport(
   if (typeof document !== 'undefined' && document.fonts?.ready) {
     await document.fonts.ready;
   }
-  const images = await loadImages(photos);
+  const images = await loadImages(
+    photos,
+    design.frameOverlay ? [design.frameOverlay] : [],
+  );
   const layout = computeLayout(design);
 
   let s = scale;

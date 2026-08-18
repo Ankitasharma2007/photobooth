@@ -1,26 +1,26 @@
 {
-    "acm_magenta_four": {
-        "name": "ACM Magenta 4-Strip",
-        "layout": "four",
-        "bg": "#B3278C",
-        "frame": "classic.png"
+    "acm_spiderman_single": {
+        "name": "ACM Spider-Man Single",
+        "layout": "spiderman_single",
+        "bg": "#FFFFFF",
+        "frame": "frame.png"
     },
-    "acm_amber_three": {
-        "name": "ACM Amber 3-Strip",
-        "layout": "three",
-        "bg": "#C46D00",
-        "frame": "classic.png"
+    "acm_popstar_three": {
+        "name": "ACM Pop Star 3-Strip",
+        "layout": "pop_three",
+        "bg": "#FFFFFF",
+        "frame": "frame.png"
     },
-    "acm_skyblue_one": {
-        "name": "ACM Sky Blue Single",
-        "layout": "one",
-        "bg": "#4AA3E0",
-        "frame": "classic.png"
+    "acm_retro_four": {
+        "name": "ACM Retro 4-Strip",
+        "layout": "retro_four",
+        "bg": "#8B0000",
+        "frame": "frame.png"
     },
-    "acm_pale_oak_two": {
-        "name": "ACM  Oak 2-Strip",
-        "layout": "two",
-        "bg": "#F4F1EC",
-        "frame": "classic.png"
+    "acm_doodle_four": {
+        "name": "ACM Cooked 4-Grid",
+        "layout": "doodle_four",
+        "bg": "#000000",
+        "frame": "frame.png"
     }
 }
