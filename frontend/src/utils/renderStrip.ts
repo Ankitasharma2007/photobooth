@@ -41,38 +41,43 @@ export const CUSTOM_FRAME_CONFIGS: Record<
     slots: { x: number; y: number; w: number; h: number }[];
   }
 > = {
+  '/frames/sony_single.png': {
+    nativeWidth: 800,
+    nativeHeight: 1000,
+    slots: [{ x: 25, y: 30, w: 749, h: 743 }],
+  },
   '/frames/spiderman_single.png': {
-    nativeWidth: 916,
-    nativeHeight: 1024,
-    slots: [{ x: 111, y: 113, w: 654, h: 655 }],
+    nativeWidth: 789,
+    nativeHeight: 951,
+    slots: [{ x: 26, y: 34, w: 696, h: 696 }],
   },
   '/frames/pop_three.png': {
     nativeWidth: 343,
     nativeHeight: 1024,
     slots: [
-      { x: 17, y: 56, w: 310, h: 254 },
-      { x: 17, y: 326, w: 310, h: 254 },
-      { x: 17, y: 597, w: 310, h: 254 },
+      { x: 0, y: 42, w: 343, h: 280 },
+      { x: 0, y: 312, w: 343, h: 280 },
+      { x: 0, y: 583, w: 343, h: 280 },
     ],
   },
   '/frames/retro_four.png': {
-    nativeWidth: 357,
-    nativeHeight: 1024,
+    nativeWidth: 305,
+    nativeHeight: 1012,
     slots: [
-      { x: 50, y: 74, w: 247, h: 190 },
-      { x: 50, y: 277, w: 247, h: 190 },
-      { x: 50, y: 480, w: 247, h: 190 },
-      { x: 50, y: 683, w: 247, h: 190 },
+      { x: 5, y: 43, w: 297, h: 225 },
+      { x: 5, y: 246, w: 297, h: 225 },
+      { x: 5, y: 449, w: 297, h: 225 },
+      { x: 5, y: 652, w: 297, h: 225 },
     ],
   },
   '/frames/doodle_four.png': {
-    nativeWidth: 823,
-    nativeHeight: 1024,
+    nativeWidth: 809,
+    nativeHeight: 1019,
     slots: [
-      { x: 45, y: 90, w: 350, h: 372 },
-      { x: 430, y: 88, w: 350, h: 374 },
-      { x: 48, y: 500, w: 352, h: 384 },
-      { x: 435, y: 504, w: 340, h: 376 },
+      { x: 15, y: 67, w: 390, h: 412 },
+      { x: 400, y: 65, w: 390, h: 414 },
+      { x: 18, y: 477, w: 392, h: 424 },
+      { x: 405, y: 486, w: 380, h: 416 },
     ],
   },
 };
@@ -274,16 +279,10 @@ export function drawPhotoInCell(
 
   const iw = img.naturalWidth || photo.w;
   const ih = img.naturalHeight || photo.h;
-  const s = coverScale(iw, ih, cell.w, cell.h) * t.scale;
-  ctx.drawImage(img, (-iw * s) / 2, (-ih * s) / 2, iw * s, ih * s);
-  ctx.restore();
 
-  // A hairline keeps light photos from bleeding into light frames.
-  ctx.save();
-  ctx.strokeStyle = 'rgba(0,0,0,0.14)';
-  ctx.lineWidth = 1;
-  shapePath(ctx, shape, cell.x, cell.y, cell.w, cell.h);
-  ctx.stroke();
+  // Add 1.5% scale safety bleed so photo completely covers cell area under frame overlay
+  const s = coverScale(iw, ih, cell.w, cell.h) * t.scale * 1.015;
+  ctx.drawImage(img, (-iw * s) / 2, (-ih * s) / 2, iw * s, ih * s);
   ctx.restore();
 }
 
@@ -480,7 +479,9 @@ export function renderStrip(ctx: Ctx, o: RenderOptions): StripLayout {
   ctx.setTransform(k, 0, 0, k, 0, 0);
   ctx.clearRect(0, 0, layout.width, layout.height);
 
-  paintBackground(ctx, d, layout.width, layout.height);
+  if (!d.frameOverlay) {
+    paintBackground(ctx, d, layout.width, layout.height);
+  }
 
   layout.cells.forEach((cell, i) => {
     const photo = o.photos[i];

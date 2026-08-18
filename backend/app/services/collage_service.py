@@ -32,9 +32,9 @@ def generate_collage(photo_paths, layout_name, output_folder):
 
     # Create blank canvas
     canvas = Image.new(
-        "RGB",
+        "RGBA",
         (canvas_width, canvas_height),
-        "white"
+        (0, 0, 0, 0)
     )
 
     # Paste each photo
@@ -58,7 +58,7 @@ def generate_collage(photo_paths, layout_name, output_folder):
     # Save collage
     output_path = output_folder / "collage.jpg"
 
-    canvas.save(
+    canvas.convert("RGB").save(
         output_path,
         quality=95
     )

@@ -19,6 +19,7 @@ interface LayoutSlide {
   badge: string;
   count: number;
   frameOverlay: string;
+  bgGradient: string;
 }
 
 const LAYOUT_SLIDES: LayoutSlide[] = [
@@ -31,16 +32,29 @@ const LAYOUT_SLIDES: LayoutSlide[] = [
     badge: '1 PHOTO',
     count: 1,
     frameOverlay: '/frames/spiderman_single.png',
+    bgGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%)',
+  },
+  {
+    id: 'single',
+    frameId: 'sony_single',
+    label: 'Sony Cam Single',
+    title: 'ACM SONY CAM SINGLE',
+    subtitle: '1-photo vintage Sony Cyber-shot poster with camera controls.',
+    badge: '1 PHOTO',
+    count: 1,
+    frameOverlay: '/frames/sony_single.png',
+    bgGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%)',
   },
   {
     id: 'strip3',
     frameId: 'pop_three',
-    label: 'Pop Star 3-Strip',
-    title: 'ACM POP STAR 3-STRIP',
-    subtitle: '3-photo cyber starburst vertical strip.',
+    label: 'Like the Movies 3-Strip',
+    title: 'ACM LIKE THE MOVIES 3-STRIP',
+    subtitle: '3-photo strip with Laufey music player & ACM logo.',
     badge: '3 PHOTOS',
     count: 3,
     frameOverlay: '/frames/pop_three.png',
+    bgGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%)',
   },
   {
     id: 'strip4',
@@ -51,6 +65,7 @@ const LAYOUT_SLIDES: LayoutSlide[] = [
     badge: '4 PHOTOS',
     count: 4,
     frameOverlay: '/frames/retro_four.png',
+    bgGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%)',
   },
   {
     id: 'grid4',
@@ -61,6 +76,7 @@ const LAYOUT_SLIDES: LayoutSlide[] = [
     badge: '4 GRID',
     count: 4,
     frameOverlay: '/frames/doodle_four.png',
+    bgGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F8F9FA 100%)',
   },
 ];
 
@@ -68,10 +84,14 @@ export default function WelcomeScreen() {
   const { lang, theme, design, patchDesign, setLang, go } = useBooth();
   const t = (k: Parameters<typeof translate>[1]) => translate(lang, k);
 
-  // Initialize active index from store's canonical design.layout
+  const angleStep = (Math.PI * 2) / LAYOUT_SLIDES.length;
+
+  // Initialize active index from store's canonical design.layout & design.frameId
   const initialIdx = Math.max(
     0,
-    LAYOUT_SLIDES.findIndex((s) => s.id === design.layout),
+    LAYOUT_SLIDES.findIndex(
+      (s) => s.id === design.layout && (!design.frameId || s.frameId === design.frameId),
+    ),
   );
 
   const [selectedIdx, setSelectedIdx] = useState(initialIdx >= 0 ? initialIdx : 0);
@@ -80,14 +100,14 @@ export default function WelcomeScreen() {
   const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   // Angle tracking in radians for continuous 3D orbit
-  const angleRef = useRef(-((initialIdx >= 0 ? initialIdx : 0) * (Math.PI / 2)));
+  const angleRef = useRef(-((initialIdx >= 0 ? initialIdx : 0) * angleStep));
   const velocityRef = useRef(0.0025);
   const targetVelRef = useRef(0.0025);
   const isHoveredRef = useRef(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Card hover tilt state (mapped by slide id)
+  // Card hover tilt state (mapped by slide frameId)
   const [hoverTilts, setHoverTilts] = useState<Record<string, { rx: number; ry: number }>>({});
 
   // Force component re-render on rAF frame update
@@ -104,7 +124,7 @@ export default function WelcomeScreen() {
 
       // Calculate which card is currently closest to the front (angle = 0 mod 2pi)
       const normalized = ((-angleRef.current % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const currentFront = Math.round(normalized / (Math.PI / 2)) % LAYOUT_SLIDES.length;
+      const currentFront = Math.round(normalized / angleStep) % LAYOUT_SLIDES.length;
       
       setFrontIdx(currentFront);
       setFrameTick((n) => (n + 1) % 10000);
@@ -114,18 +134,17 @@ export default function WelcomeScreen() {
 
     animId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(animId);
-  }, []);
+  }, [angleStep]);
 
   // ONE-TAP LAUNCHER: Tapping ANY card immediately sets canonical layout & opens camera!
   const launchSessionWithLayout = useCallback(
-    (layoutId: LayoutId, idx?: number) => {
+    (slide: LayoutSlide, idx?: number) => {
       if (idx !== undefined) {
         setSelectedIdx(idx);
-        angleRef.current = -(idx * (Math.PI / 2));
+        angleRef.current = -(idx * angleStep);
       }
-      const slide = LAYOUT_SLIDES.find((s) => s.id === layoutId) || LAYOUT_SLIDES[0];
       patchDesign({
-        layout: layoutId,
+        layout: slide.id,
         frameOverlay: slide.frameOverlay,
         frameId: slide.frameId,
       });
@@ -137,11 +156,11 @@ export default function WelcomeScreen() {
         go('capture');
       }, 100);
     },
-    [patchDesign, go],
+    [patchDesign, go, angleStep],
   );
 
   const handleDefaultStart = () => {
-    launchSessionWithLayout(design.layout || 'strip4');
+    launchSessionWithLayout(LAYOUT_SLIDES[selectedIdx] || LAYOUT_SLIDES[0]);
   };
 
   // Pointer movement over gallery controls orbit velocity & direction
@@ -196,18 +215,18 @@ export default function WelcomeScreen() {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         const nextIdx = (selectedIdx + 1) % LAYOUT_SLIDES.length;
         setSelectedIdx(nextIdx);
-        angleRef.current = -(nextIdx * (Math.PI / 2));
+        angleRef.current = -(nextIdx * angleStep);
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         const prevIdx = (selectedIdx - 1 + LAYOUT_SLIDES.length) % LAYOUT_SLIDES.length;
         setSelectedIdx(prevIdx);
-        angleRef.current = -(prevIdx * (Math.PI / 2));
+        angleRef.current = -(prevIdx * angleStep);
       } else if (e.key === 'Enter') {
-        launchSessionWithLayout(LAYOUT_SLIDES[selectedIdx].id);
+        launchSessionWithLayout(LAYOUT_SLIDES[selectedIdx]);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedIdx, launchSessionWithLayout]);
+  }, [selectedIdx, launchSessionWithLayout, angleStep]);
 
   // Mouse wheel navigation
   const handleWheel = (e: React.WheelEvent) => {
@@ -216,7 +235,7 @@ export default function WelcomeScreen() {
       const step = e.deltaY > 0 || e.deltaX > 0 ? 1 : -1;
       const nextIdx = (selectedIdx + step + LAYOUT_SLIDES.length) % LAYOUT_SLIDES.length;
       setSelectedIdx(nextIdx);
-      angleRef.current = -(nextIdx * (Math.PI / 2));
+      angleRef.current = -(nextIdx * angleStep);
 
       wheelTimeoutRef.current = setTimeout(() => {
         wheelTimeoutRef.current = null;
@@ -343,7 +362,7 @@ export default function WelcomeScreen() {
           onClick={() => {
             const prevIdx = (selectedIdx - 1 + LAYOUT_SLIDES.length) % LAYOUT_SLIDES.length;
             setSelectedIdx(prevIdx);
-            angleRef.current = -(prevIdx * (Math.PI / 2));
+            angleRef.current = -(prevIdx * angleStep);
           }}
           aria-label="Previous layout"
           className="absolute left-4 z-40 grid h-11 w-11 place-items-center rounded-full border border-[#D6D0C5] bg-white text-[#252320] transition-all duration-200 hover:scale-105 hover:bg-[#E5E0D8] shadow-subtle"
@@ -356,7 +375,7 @@ export default function WelcomeScreen() {
           onClick={() => {
             const nextIdx = (selectedIdx + 1) % LAYOUT_SLIDES.length;
             setSelectedIdx(nextIdx);
-            angleRef.current = -(nextIdx * (Math.PI / 2));
+            angleRef.current = -(nextIdx * angleStep);
           }}
           aria-label="Next layout"
           className="absolute right-4 z-40 grid h-11 w-11 place-items-center rounded-full border border-[#D6D0C5] bg-white text-[#252320] transition-all duration-200 hover:scale-105 hover:bg-[#E5E0D8] shadow-subtle"
@@ -366,34 +385,34 @@ export default function WelcomeScreen() {
 
         {/* 3D Circular Orbit Track Wrapper */}
         <div
-          className="relative flex h-[400px] w-full max-w-[1200px] items-center justify-center sm:h-[460px] lg:h-[510px]"
-          style={{ perspective: '1200px' }}
+          className="relative flex h-[400px] w-full max-w-[1300px] items-center justify-center sm:h-[460px] lg:h-[510px]"
+          style={{ perspective: '1100px' }}
         >
           {LAYOUT_SLIDES.map((slide, i) => {
-            const theta = i * (Math.PI / 2) + angleRef.current;
+            const theta = i * angleStep + angleRef.current;
             const sin = Math.sin(theta);
             const cos = Math.cos(theta);
 
-            // Desktop vs Mobile radius
+            // Desktop vs Mobile radius for 5 slides
             const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-            const radiusX = isMobile ? 115 : 260;
-            const radiusZ = isMobile ? 80 : 140;
+            const radiusX = isMobile ? 130 : 380;
+            const radiusZ = isMobile ? 90 : 190;
 
             const posX = sin * radiusX;
             const posZ = (cos - 1) * radiusZ;
-            const rotY = sin * 22; // subtle 3D angle
+            const rotY = sin * 26; // subtle 3D angle
 
-            const scale = 0.72 + 0.28 * ((cos + 1) / 2);
-            const opacity = 0.40 + 0.60 * ((cos + 1) / 2);
+            const scale = 0.68 + 0.32 * ((cos + 1) / 2);
+            const opacity = 0.35 + 0.65 * ((cos + 1) / 2);
             const zIndex = Math.round(100 + 100 * cos);
 
             const isSelected = selectedIdx === i;
-            const tilt = hoverTilts[slide.id] || { rx: 0, ry: 0 };
+            const tilt = hoverTilts[slide.frameId] || { rx: 0, ry: 0 };
 
             return (
               /* Layer 1: Orbit Position Wrapper */
               <div
-                key={slide.id}
+                key={slide.frameId}
                 style={{
                   position: 'absolute',
                   transform: `translate3d(${posX}px, 0, ${posZ}px) rotateY(${rotY}deg) scale(${scale})`,
@@ -405,9 +424,9 @@ export default function WelcomeScreen() {
               >
                 {/* Layer 2: Card 3D Hover Tilt Wrapper */}
                 <div
-                  onMouseMove={(e) => handleCardMouseMove(slide.id, e)}
-                  onMouseLeave={() => handleCardMouseLeave(slide.id)}
-                  onClick={() => launchSessionWithLayout(slide.id, i)}
+                  onMouseMove={(e) => handleCardMouseMove(slide.frameId, e)}
+                  onMouseLeave={() => handleCardMouseLeave(slide.frameId)}
+                  onClick={() => launchSessionWithLayout(slide, i)}
                   style={{
                     backgroundColor: '#FFFFFF',
                     transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateZ(${tilt.rx !== 0 ? 16 : 0}px)`,
@@ -429,11 +448,13 @@ export default function WelcomeScreen() {
                     </div>
 
                     {/* Frame Image Mockup */}
-                    <div className="relative mt-7 flex-1 w-full overflow-hidden rounded-[14px] bg-[#111] border border-[#E1E8EC] flex items-center justify-center p-1.5 shadow-inner">
+                    <div 
+                      className="relative mt-7 flex-1 w-full overflow-hidden rounded-[14px] flex items-center justify-center"
+                    >
                       <img
                         src={slide.frameOverlay}
                         alt={slide.label}
-                        className="h-full w-full object-contain drop-shadow-md"
+                        className="h-full w-full object-contain drop-shadow-md relative z-10"
                       />
                     </div>
 
@@ -463,11 +484,11 @@ export default function WelcomeScreen() {
         <div className="flex items-center gap-2">
           {LAYOUT_SLIDES.map((s, idx) => (
             <button
-              key={s.id}
+              key={s.frameId}
               type="button"
               onClick={() => {
                 setSelectedIdx(idx);
-                angleRef.current = -(idx * (Math.PI / 2));
+                angleRef.current = -(idx * angleStep);
               }}
               aria-label={`Select ${s.label}`}
               className={cx(

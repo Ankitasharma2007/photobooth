@@ -1,4 +1,10 @@
 {
+    "acm_sony_single": {
+        "name": "ACM Sony Cam Single",
+        "layout": "sony_single",
+        "bg": "#FFFFFF",
+        "frame": "frame.png"
+    },
     "acm_spiderman_single": {
         "name": "ACM Spider-Man Single",
         "layout": "spiderman_single",
@@ -6,7 +12,7 @@
         "frame": "frame.png"
     },
     "acm_popstar_three": {
-        "name": "ACM Pop Star 3-Strip",
+        "name": "ACM Like The Movies 3-Strip",
         "layout": "pop_three",
         "bg": "#FFFFFF",
         "frame": "frame.png"
