@@ -1,6 +1,7 @@
 from fastapi import FastAPI
-from app.api import session, upload, photos, generate, email
+from app.api import session, upload, photos, generate, email, templates
 from app.api import download
+from app.database.db import init_database
 from app.services.email_worker import start_email_worker
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,7 @@ app = FastAPI(title="Photobooth API")
 
 @app.on_event("startup")
 def startup_event():
+    init_database()
     start_email_worker()
 
 app.add_middleware(
@@ -24,6 +26,7 @@ app.include_router(photos.router)
 app.include_router(generate.router)
 app.include_router(download.router)
 app.include_router(email.router)
+app.include_router(templates.router)
 
 @app.get("/")
 def root():

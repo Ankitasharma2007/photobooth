@@ -116,8 +116,8 @@ export const api = {
   /** Plain URL — it is an <img> src and a download link, not a fetch. */
   downloadUrl: (sessionId: string) => `${API_BASE}/session/${sessionId}/download`,
 
-  email: (sessionId: string, email: string) =>
-    call<QueuedEmail>(`/session/${sessionId}/email`, json({ email })),
+  email: (sessionId: string, email: string, imagePath: string) =>
+    call<QueuedEmail>(`/session/${sessionId}/email`, json({ email, image_path: imagePath })),
 };
 
 /**

@@ -69,7 +69,7 @@ export default function CloudPanel() {
     setResult(res);
     setStamp(Date.now());
     setOnline(true);
-    return id;
+    return res;
   };
 
   const run = async (kind: Exclude<Busy, null>) => {
@@ -77,8 +77,8 @@ export default function CloudPanel() {
     setBusy(kind);
     setError(null);
     try {
-      const id = await buildOnServer();
-      if (kind === 'email') setQueued(await api.email(id, email));
+      const res = await buildOnServer();
+      if (kind === 'email') setQueued(await api.email(res.sessionId, email, res.final_image));
     } catch (e) {
       setError((e as Error).message);
     } finally {
